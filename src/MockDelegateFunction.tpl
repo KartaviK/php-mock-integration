@@ -1,18 +1,16 @@
 namespace {namespace};
 
-use phpmock\functions\FunctionProvider;
+use Kartavik\PHPMock\Contract\Functions\ProviderInterface;
 
 /**
  * Function provider which delegates to a mockable MockDelegate.
  *
  * @author Markus Malkusch <markus@malkusch.de>
- * @link bitcoin:1335STSwu9hST4vcMRppEPgENMHD2r1REK Donations
- * @license http://www.wtfpl.net/txt/copying/ WTFPL
+ * @author Roman Varkuta <roman.varkuta@gmail.com>
  * @internal
  */
-abstract class MockDelegateFunction implements FunctionProvider
+abstract class MockDelegateFunction implements ProviderInterface
 {
-    
     /**
      * A mocked function will redirect its call to this method.
      *
@@ -20,7 +18,7 @@ abstract class MockDelegateFunction implements FunctionProvider
      */
     abstract public function delegate({signatureParameters});
 
-    public function getCallable()
+    public function getClosure(): callable
     {
         return [$this, "delegate"];
     }

@@ -1,43 +1,32 @@
 <?php
 
-namespace phpmock\integration;
+namespace Kartavik\PHPMock\Integration;
 
-use phpmock\generator\ParameterBuilder;
+use Kartavik\PHPMock\Generator\ParameterBuilder;
 
 /**
  * Defines a MockDelegateFunction.
  *
  * @author Markus Malkusch <markus@malkusch.de>
- * @link bitcoin:1335STSwu9hST4vcMRppEPgENMHD2r1REK Donations
- * @license http://www.wtfpl.net/txt/copying/ WTFPL
+ * @author Roman Varkuta <roman.varkuta@gmail.com>
  * @internal
  */
 class MockDelegateFunctionBuilder
 {
-    
-    /**
-     * The delegation method name.
-     */
-    const METHOD = "delegate";
-    
-    /**
-     * @var string The namespace of the build class.
-     */
-    private $namespace;
-    
-    /**
-     * @var \Text_Template The MockDelegateFunction template.
-     */
-    private $template;
-    
-    /**
-     * Instantiation.
-     */
-    public function __construct()
+    /** The delegation method name. */
+    public const METHOD = "delegate";
+
+    /** @var string The namespace of the build class. */
+    protected $namespace;
+
+    /** @var \Text_Template The MockDelegateFunction template. */
+    protected $template;
+
+    public function __construct(\Text_Template $template = null)
     {
-        $this->template = new \Text_Template(__DIR__ . "/MockDelegateFunction.tpl");
+        $this->template = $template ?? new \Text_Template(__DIR__ . "/MockDelegateFunction.tpl");
     }
-    
+
     /**
      * Builds a MockDelegateFunction for a function.
      *
@@ -45,9 +34,9 @@ class MockDelegateFunctionBuilder
      *
      * @SuppressWarnings(PHPMD)
      */
-    public function build($functionName = null)
+    public function build(string $functionName = null, ParameterBuilder $builder = null)
     {
-        $parameterBuilder = new ParameterBuilder();
+        $parameterBuilder = $builder ?? new ParameterBuilder();
         $parameterBuilder->build($functionName);
         $signatureParameters = $parameterBuilder->getSignatureParameters();
 
@@ -56,18 +45,18 @@ class MockDelegateFunctionBuilder
          * to the generated class.
          */
         $hash = md5($signatureParameters);
-        $this->namespace = __NAMESPACE__.$hash;
+        $this->namespace = __NAMESPACE__ . $hash;
         if (class_exists($this->getFullyQualifiedClassName())) {
             return;
         }
-        
+
         $data = [
-            "namespace"           => $this->namespace,
+            "namespace" => $this->namespace,
             "signatureParameters" => $signatureParameters,
         ];
         $this->template->setVar($data, false);
         $definition = $this->template->render();
-        
+
         eval($definition);
     }
 
@@ -76,8 +65,8 @@ class MockDelegateFunctionBuilder
      *
      * @return string The class name.
      */
-    public function getFullyQualifiedClassName()
+    public function getFullyQualifiedClassName(): string
     {
-        return "$this->namespace\\MockDelegateFunction";
+        return "{$this->namespace}\\MockDelegateFunction";
     }
 }

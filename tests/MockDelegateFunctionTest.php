@@ -1,63 +1,54 @@
 <?php
 
-namespace phpmock\integration;
+namespace Kartavik\PHPMock\Integration\Tests;
+
+use PHPUnit\Framework\MockObject\MockObject;
+use PHPUnit\Framework\TestCase;
+use Kartavik\PHPMock\Integration\MockDelegateFunctionBuilder;
 
 /**
  * Tests MockDelegateFunction.
  *
  * @author Markus Malkusch <markus@malkusch.de>
- * @link bitcoin:1335STSwu9hST4vcMRppEPgENMHD2r1REK Donations
- * @license http://www.wtfpl.net/txt/copying/ WTFPL
- * @see MockDelegateFunction
+ * @author Roman Varkuta <roman.varkuta@gmail.com>
  */
-class MockDelegateFunctionTest extends \PHPUnit_Framework_TestCase
+class MockDelegateFunctionTest extends TestCase
 {
-    
-    /**
-     * @var string The class name of a generated class.
-     */
+    /** @var string The class name of a generated class. */
     private $className;
-    
-    protected function setUp()
+
+    protected function setUp(): void
     {
         parent::setUp();
-        
+
         $builder = new MockDelegateFunctionBuilder();
         $builder->build();
         $this->className = $builder->getFullyQualifiedClassName();
     }
 
-    /**
-     * Tests delegate() returns the mock's result.
-     *
-     * @test
-     */
     public function testDelegateReturnsMockResult()
     {
         $expected = 3;
-        $mock     = $this->getMockForAbstractClass($this->className);
-        
+        $mock = $this->getMockForAbstractClass($this->className);
+
         $mock->expects($this->once())
-             ->method(MockDelegateFunctionBuilder::METHOD)
-             ->willReturn($expected);
-        
-        $result = call_user_func($mock->getCallable());
+            ->method(MockDelegateFunctionBuilder::METHOD)
+            ->willReturn($expected);
+
+        $result = call_user_func($mock->getClosure());
         $this->assertEquals($expected, $result);
     }
 
-    /**
-     * Tests delegate() forwards the arguments.
-     *
-     * @test
-     */
     public function testDelegateForwardsArguments()
     {
+        /** @var MockDelegateFunctionBuilder|MockObject $mock */
         $mock = $this->getMockForAbstractClass($this->className);
-        
+
         $mock->expects($this->once())
-             ->method(MockDelegateFunctionBuilder::METHOD)
-             ->with(1, 2);
-        
-        call_user_func($mock->getCallable(), 1, 2);
+            ->method(MockDelegateFunctionBuilder::METHOD)
+            ->with(1, 2)
+            ->willReturn(1);
+
+        $this->assertEquals(1, call_user_func($mock->getClosure(), 1, 2));
     }
 }

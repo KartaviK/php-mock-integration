@@ -1,23 +1,18 @@
 <?php
 
-namespace phpmock\integration;
+namespace Kartavik\PHPMock\Integration\Tests;
+
+use PHPUnit\Framework\TestCase;
+use Kartavik\PHPMock\Integration\MockDelegateFunctionBuilder;
 
 /**
  * Tests MockDelegateFunctionBuilder.
  *
  * @author Markus Malkusch <markus@malkusch.de>
- * @link bitcoin:1335STSwu9hST4vcMRppEPgENMHD2r1REK Donations
- * @license http://www.wtfpl.net/txt/copying/ WTFPL
- * @see MockDelegateFunctionBuilder
+ * @author Roman Varkuta <roman.varkuta@gmail.com>
  */
-class MockDelegateFunctionBuilderTest extends \PHPUnit_Framework_TestCase
+class MockDelegateFunctionBuilderTest extends TestCase
 {
-
-    /**
-     * Test build() defines a class.
-     *
-     * @test
-     */
     public function testBuild()
     {
         $builder = new MockDelegateFunctionBuilder();
@@ -25,53 +20,39 @@ class MockDelegateFunctionBuilderTest extends \PHPUnit_Framework_TestCase
         $this->assertTrue(class_exists($builder->getFullyQualifiedClassName()));
     }
 
-    /**
-     * Test build() would never create the same class name for different signatures.
-     *
-     * @test
-     */
     public function testDiverseSignaturesProduceDifferentClasses()
     {
         $builder = new MockDelegateFunctionBuilder();
 
-        $builder->build(create_function('', ''));
+        $builder->build('time');
         $class1 = $builder->getFullyQualifiedClassName();
 
-        $builder->build(create_function('$a', ''));
+        $builder->build('microtime');
         $class2 = $builder->getFullyQualifiedClassName();
-        
+
         $builder2 = new MockDelegateFunctionBuilder();
-        $builder2->build(create_function('$a, $b', ''));
+        $builder2->build('array_flip');
         $class3 = $builder2->getFullyQualifiedClassName();
-        
+
         $this->assertNotEquals($class1, $class2);
         $this->assertNotEquals($class1, $class3);
         $this->assertNotEquals($class2, $class3);
     }
 
-    /**
-     * Test build() would create the same class name for identical signatures.
-     *
-     * @test
-     */
     public function testSameSignaturesProduceSameClass()
     {
-        $signature = '$a';
-        $builder   = new MockDelegateFunctionBuilder();
+        $builder = new MockDelegateFunctionBuilder();
 
-        $builder->build(create_function($signature, ''));
+        $builder->build('time');
         $class1 = $builder->getFullyQualifiedClassName();
-        
-        $builder->build(create_function($signature, ''));
+
+        $builder->build('time');
         $class2 = $builder->getFullyQualifiedClassName();
-        
+
         $this->assertEquals($class1, $class2);
     }
-    
+
     /**
-     * Tests declaring a class with enabled backupStaticAttributes.
-     *
-     * @test
      * @backupStaticAttributes enabled
      * @dataProvider provideTestBackupStaticAttributes
      */
@@ -79,8 +60,9 @@ class MockDelegateFunctionBuilderTest extends \PHPUnit_Framework_TestCase
     {
         $builder = new MockDelegateFunctionBuilder();
         $builder->build("min");
+        $this->assertTrue(true);
     }
-    
+
     /**
      * Just repeat testBackupStaticAttributes a few times.
      *
@@ -95,27 +77,20 @@ class MockDelegateFunctionBuilderTest extends \PHPUnit_Framework_TestCase
     }
 
     /**
-     * Tests deserialization.
-     *
-     * @test
      * @runInSeparateProcess
      * @dataProvider provideTestDeserializationInNewProcess
      */
     public function testDeserializationInNewProcess($data)
     {
         unserialize($data);
+        $this->assertTrue(true);
     }
-    
-    /**
-     * Returns test cases for testDeserializationInNewProcess().
-     *
-     * @return array Test cases.
-     */
-    public function provideTestDeserializationInNewProcess()
+
+    public function provideTestDeserializationInNewProcess(): array
     {
         $builder = new MockDelegateFunctionBuilder();
         $builder->build("min");
-        
+
         return [
             [serialize($this->getMockForAbstractClass($builder->getFullyQualifiedClassName()))]
         ];
